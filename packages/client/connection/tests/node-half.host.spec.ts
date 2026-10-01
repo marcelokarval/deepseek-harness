@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest'
 import type { AddressInfo } from 'node:net'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AttachmentStore } from '@deepseek-ai/dsh-attachment'
+import type { CredentialProvider } from '@deepseek-ai/dsh-credentials'
 import type { IndexInjection, WebServer, WebRoute, WebUpgradeRoute } from '@deepseek-ai/dsh-host-webserver'
 import {
   API_PATH,
@@ -19,7 +20,7 @@ import {
   type PeerScope,
 } from '../src/index.ts'
 import { DEFAULT_MAX_REQUEST_BODY_BYTES } from '../src/http-bridge.ts'
-import { provideBrowserCredentials } from './browser-credentials.ts'
+import { provideBrowserCredentials, RecordCredentials } from './browser-credentials.ts'
 
 /** Structural webServer fake recording both route registries. */
 function fakeHttpServer(
@@ -278,6 +279,8 @@ describe('connection node half', () => {
     const methods = [
       'session/openWorkspacePath',
       'llm/discoverModels', 'skills/list', 'agentPresets/list',
+      'settings/describe', 'settings/update', 'settings/replace', 'settings/mutate',
+      'credentials/describe', 'credentials/set', 'credentials/unset',
     ]
     for (const method of methods) {
       const denied = fakeResponse()
@@ -343,6 +346,28 @@ describe('connection node half', () => {
       cookie: browserCookie(connection, 'harness.example'),
     }))).toBeUndefined()
     await dispose()
+  })
+
+  it('omits browser authentication without creating unused signing material', async () => {
+    const ctx = new Context()
+    const routes: WebRoute[] = []
+    const credentials = new RecordCredentials()
+    ctx.provide('credentials', credentials as unknown as CredentialProvider)
+    ctx.provide('webServer', fakeHttpServer(routes, []) as WebServer)
+    const fiber = ctx.plugin({ inject: [...inject], apply }, {
+      trustedHosts: ['harness.example'], requireBrowserAuth: false,
+    })
+    await fiber.await()
+    const connection = ctx.get('connection') as HostConnectionHandle
+
+    expect(credentials.modifies).toBe(0)
+    expect(connection.authenticatedUrl('http://harness.example/')).toBe('http://harness.example/')
+    expect(connection.requestRejection(fakeRequest({ host: 'harness.example' }))).toBeUndefined()
+    expect(connection.requestRejection(fakeRequest({ host: 'untrusted.example' }))).toBe(403)
+    const index = fakeResponse()
+    expect(connection.authorizeIndex(fakeRequest({ host: 'harness.example' }), index.response)).toBe(true)
+    expect(index.state).toEqual({})
+    await fiber.dispose()
   })
 
   it('provides a disposable dedicated RPC channel', async () => {

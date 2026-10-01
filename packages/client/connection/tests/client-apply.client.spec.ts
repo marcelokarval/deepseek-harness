@@ -129,9 +129,18 @@ describe('connection client apply', () => {
     expect(handle.isLoopback).toBe(true)
   })
 
+  it('treats approved Karval laboratory authorities as local for UI capability presentation', async () => {
+    for (const hostname of ['dsh.local', '10.0.0.1', '10.0.255.254']) {
+      ;(globalThis as Win).location = { hostname }
+      expect((await mount()).isLoopback).toBe(true)
+    }
+  })
+
   it('reports non-loopback page authority through the connection handle', async () => {
-    ;(globalThis as Win).location = { hostname: '192.0.2.20' }
-    expect((await mount()).isLoopback).toBe(false)
+    for (const hostname of ['192.0.2.20', 'dsh.local.evil', '10.1.0.1', '10.0.0.256', '10.0.0']) {
+      ;(globalThis as Win).location = { hostname }
+      expect((await mount()).isLoopback).toBe(false)
+    }
   })
 
   it('requires one generation source and ignores a stale source disposer', async () => {

@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-05-optional-browser-auth-skips-signing-grant.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-05-optional-browser-auth-skips-signing-grant.md
+/agent-note-skip-browser-signing-material-when-browser-auth-is-disabled:
+  en: 8f62a9937252fbda
+  zh: 21778be84cf110dc
+/agent-note-skip-browser-signing-material-when-browser-auth-is-disabled/problem:
+  en: 5c1fae8cc8e2d3e0
+  zh: a21990e3ea65ee41
+/agent-note-skip-browser-signing-material-when-browser-auth-is-disabled/decision:
+  en: 6ca90e935bd3f51c
+  zh: 00b2be876d1ffcbd
+/agent-note-skip-browser-signing-material-when-browser-auth-is-disabled/alternatives-considered:
+  en: e965b701083e7da6
+  zh: 832501a07db82ce2
+/agent-note-skip-browser-signing-material-when-browser-auth-is-disabled/consequences:
+  en: 6ff5b7e578d0611a
+  zh: 0c1337a5d72d77a7

@@ -198,6 +198,19 @@ function watchBrowserNetwork(controller: ConnectionController): () => void {
 }
 
 /**
+ * Treat the private laboratory authorities as local for UI capabilities.
+ * The Host still enforces its configured request admission policy.
+ */
+function isKarvalLabHostname(hostname: string): boolean {
+  if (hostname === 'dsh.local') return true
+  const parts = hostname.split('.')
+  return parts.length === 4
+    && parts[0] === '10'
+    && parts[1] === '0'
+    && parts.every(part => /^\d{1,3}$/.test(part) && Number(part) <= 255)
+}
+
+/**
  * Install one Context-owned Connection service from explicit composition inputs.
  * @param ctx - client Cordis context.
  * @param options - physical carrier, reconnect timing, and page location.
@@ -245,7 +258,10 @@ export function installConnection(ctx: Context, options: ConnectionInstallOption
     publishState(undefined)
   }
   const handle: ConnectionHandle = {
-    isLoopback: transport?.ownsHost === true || pageLocation === undefined || isLoopbackHostname(pageLocation.hostname),
+    isLoopback: transport?.ownsHost === true
+      || pageLocation === undefined
+      || isLoopbackHostname(pageLocation.hostname)
+      || isKarvalLabHostname(pageLocation.hostname),
     generation: {
       getSnapshot: () => generation,
       subscribe: (listener) => {

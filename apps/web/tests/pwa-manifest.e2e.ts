@@ -28,6 +28,12 @@ it('ships install metadata with the built web application', async () => {
   })
 })
 
+it('ships an HTTP fallback for crypto.randomUUID before the web bundle', async () => {
+  const index = await readFile(join(DIST_ROOT, 'index.html'), 'utf8')
+  expect(index).toContain("if (typeof crypto.randomUUID !== 'function')")
+  expect(index.indexOf('crypto.randomUUID =')).toBeLessThan(index.indexOf('/assets/index-'))
+})
+
 it('ships fixed-color favicons selected by document media queries', async () => {
   const index = await readFile(join(DIST_ROOT, 'index.html'), 'utf8')
   expect(index).toContain('<link rel="icon" type="image/svg+xml" href="./favicon-dark.svg" media="(prefers-color-scheme: dark)" />')
